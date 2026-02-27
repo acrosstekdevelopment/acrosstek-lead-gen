@@ -1,0 +1,192 @@
+job scraper output format- json-
+
+ {
+    "source": "scraper name",
+    "job_url": "job url",
+    "title": "job title",
+    "company": "company name",
+    "location": "location"
+  }
+
+chrome extension output format- json-
+
+ {
+    "source": "scraper name",
+    "job_url": "job url",
+    "title": "job title",
+    "company": "company name",
+    "location": "location"
+  }
+
+funding scrapers output format- json-
+
+{
+    "company": "company name",
+    "funding_amount": "funding amount",
+    "funding_stage": "funding stage",
+    "title": "title",
+    "source": "source"
+  }
+
+table 1a-
+
+    Status values-
+        NEW
+        LINKEDIN_FOUND
+        EMPLOYEES_SCRAPED
+        EMAILS_ENRICHED
+        EMAIL_ERROR
+        ERROR
+
+
+    columns and mapping with output data from job scrapers and chrome extension-
+        Company ID - self generated from code
+        Company Name - "company"(after normalisation)
+        Company Location - "location"(after normalisation)
+        source - "source"
+        title - "title"
+        job url - "job_url"
+        Status
+        company Linkedin url
+        Date added
+
+table 1b- 
+    status values-
+        NEW
+        LINKEDIN_FOUND
+        EMPLOYEES_SCRAPED
+        EMAILS_ENRICHED
+        EMAIL_ERROR
+        ERROR
+
+    columns and mapping with output data from funding scrapers-
+        Company ID - self generated from code
+        Company Name - "company"(after normalisation)
+        News Title - "title"
+        Source - "source"
+        Funding amount - "funding_amount"
+        Funding stage - "funding_stage"
+        Date added
+        company Linkedin url
+        Status
+
+
+
+
+sample apify output-
+
+        {
+            "id": "ACwAAAAV7S4BH97cHoh3MUvduP2Df7aGQG7iftI",
+            "linkedinUrl": "https://www.linkedin.com/in/ACwAAAAV7S4BH97cHoh3MUvduP2Df7aGQG7iftI",
+            "firstName": "Eric",
+            "lastName": "Schank",
+            "summary": "Software executive who loves inventing new products, architecting software solutions, mentoring Engineers and managers, and creating simple and easy to use solutions to real world problems.\n\nOpen Source contributor with dozens of merged requests to Ember and related projects such as Liquid-Fire and Ember-Component-CSS.\n\nSpecialties: Engineering Management, Product Management, Software and System Architecture, Drones/UAS, Mobile Development, Swift, iOS, Javascript/Typescript, Product Definition, Ruby, Rails, Ember, eCommerce, Product Catalogs, Java, C++, Application Servers, Enterprise Management, Security Software, GUI Development, Systems Monitoring",
+            "openProfile": true,
+            "premium": true,
+            "currentPositions": [
+            {
+                "tenureAtPosition": {
+                "numMonths": 8
+                },
+                "companyName": "Versaterm",
+                "title": "Head of Engineering, DroneSense by Versaterm",
+                "current": true,
+                "tenureAtCompany": {
+                "numMonths": 8
+                },
+                "startedOn": {
+                "month": 7,
+                "year": 2025
+                },
+                "companyId": "1359586",
+                "companyLinkedinUrl": "https://www.linkedin.com/company/1359586"
+            }
+            ],
+            "location": {
+            "linkedinText": "Austin, Texas, United States"
+            },
+            "_meta": {
+            "pagination": {
+                "totalElements": 34,
+                "totalPages": 2,
+                "pageNumber": 1,
+                "previousElements": 0,
+                "pageSize": 25
+            },
+            "query": {
+                "currentJobTitles": [
+                "CEO",
+                "Founder",
+                "CTO",
+                "Head of Engineering",
+                "VP of Engineering",
+                "Director of Engineering",
+                "Senior Director of Engineering",
+                "SVP of Engineering",
+                "Head of Tech",
+                "Chief Architect",
+                "Principal Architect",
+                "Engineering Manager",
+                "Global Head of Engineering",
+                "Product Head",
+                "Global Head of Product",
+                "Head of AI",
+                "Head of GenAI",
+                "Head AI ML",
+                "Managing Director – AI & Data",
+                "Chief of Staff"
+                ],
+                "currentCompanies": [
+                "https://ca.linkedin.com/company/versaterm-inc-"
+                ]
+            }
+            }
+        },
+
+
+table 2a-
+    status values-
+        NEW
+        EMAIL_FOUND
+        EMAIL_ERROR
+        EMAIL_UNKNOWN
+        ERROR
+
+    columns-
+            Company ID - from table 1a
+            Company Name - from table 1a
+            Job Title - from table 1a
+            Employee ID - "id" from apify output
+            First Name - "firstName" from apify output
+            Last Name - "lastName" from apify output
+            Employee Title - "currentPositions"->"title" from apify output
+            Employee Linkedin URL - "linkedinUrl" from apify output
+            Email ID - 
+            Status
+            Date added
+
+table 2b-
+    status values-
+        NEW
+        EMAIL_FOUND
+        EMAIL_ERROR
+        EMAIL_UNKNOWN
+        ERROR
+
+    columns and mapping with apify output-
+        Company ID - from table 1b
+        Company Name - from table 1b
+        Funding Amount - from table 1b
+        Funding Stage - from table 1b
+        Employee ID - "id" from apify output
+        First Name - "firstName" from apify output
+        Last Name - "lastName" from apify output
+        Employee Title - "currentPositions"->"title" from apify output
+        Employee Linkedin URL - "linkedinUrl" from apify output
+        Email ID - 
+        Status
+        Date added
+
+        
+
+        

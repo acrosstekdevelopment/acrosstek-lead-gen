@@ -1,0 +1,40 @@
+color schema-
+60% white
+30% blue
+10% orange
+
+favicon- assets/favicon.png
+site title- ACROSSTEK | Lead Generation Automation Software 
+brand logo- whenever needed in the website- black logo for light background- assets/blacklogo.svg, white logo for dark background- assets/vite.svg
+
+pages-
+1. homepage
+2. table 1a and 1b
+3. table 2a and 2b
+4. logs
+
+header-
+there is a persistent header that appears when the workflow is active. this header contains a progress bar showing overall progress of the workflow. it shows the latest activity being done(logged) and considered for progress calculation.
+
+page details-
+1. homepage- 
+    contains 3 grids of scrapers. each grid contains a run all button. within the grid, user can click a particular scraper to run it.
+    
+2. table 1a and 1b- 
+    contains an embeeding of google sheets - table 1a, 1b
+    has 2 tabs on top- table 1a and table 1b
+    when table 1a tab is selected- only table 1a embeeding is visible
+    when table 1b tab is selected- only table 1b embeeding is visible
+
+    tab names- job postings for table 1a and companies with funding for table 1b
+
+3. table 2a and 2b-
+    contains an embeeding of google sheets - table 2a, 2b
+    has 2 tabs on top- table 2a and table 2b
+    when table 2a tab is selected- only table 2a embeeding is visible
+    when table 2b tab is selected- only table 2b embeeding is visible
+
+    tab names- job posting stakeholders for table 2a and funding company stakeholders for table 2b
+
+4. logs-
+    contains a text box with all the logs of everything happening in the website. all success and failure messages shown here.

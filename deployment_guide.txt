@@ -1,0 +1,338 @@
+===============================================================================
+ HOSTINGER VPS DEPLOYMENT GUIDE — Lead Generation Automation
+===============================================================================
+
+TABLE OF CONTENTS
+  1. Google Sheets — Do You Need to Clean Them?
+  2. Code Changes BEFORE Pushing to GitHub
+  3. Setting Up .gitignore
+  4. GitHub Setup
+  5. VPS Server Setup (Hostinger)
+  6. Deploy the Application
+  7. Google Sheets Auth on Production
+  8. Chrome Extension Config Update
+  9. Troubleshooting
+
+===============================================================================
+1. GOOGLE SHEETS — DO YOU NEED TO CLEAN THEM?
+===============================================================================
+
+SHORT ANSWER: You don't need to clean them, but you have two options:
+
+OPTION A — Fresh start (recommended):
+  - Do NOT copy .sheet_ids.json to the VPS.
+  - On the first pipeline run, ensureSheets() will automatically create
+    4 brand new Google Sheets (Table 1a, 1b, 2a, 2b).
+  - Since MongoDB on VPS will be fresh, the sheets will also start fresh.
+  - Old sheets on your local machine remain untouched.
+
+OPTION B — Reuse existing sheets:
+  - Copy .sheet_ids.json to the VPS.
+  - The app will write to your existing sheets.
+  - BUT since VPS MongoDB is fresh, the clear+rewrite sync will wipe all
+    old data from the sheets (because MongoDB has no records to write).
+  - NOT recommended unless you plan to migrate MongoDB data too.
+
+→ Go with OPTION A. Leave .sheet_ids.json out of GitHub.
+
+===============================================================================
+2. CODE CHANGES BEFORE PUSHING TO GITHUB
+===============================================================================
+
+There are 2 sets of changes you MUST make:
+
+───── CHANGE 1: Make API_URL configurable in frontend ─────
+
+Currently, API_URL is hardcoded to 'http://localhost:5002' in 5 files.
+You need to change all of them to use an environment variable.
+
+Files to edit (all in client/src/):
+  - pages/HomePage.jsx          (line 4)
+  - pages/LogsPage.jsx          (line 4)
+  - pages/CompanyDetails.jsx    (line 3)
+  - pages/StakeholderDetails.jsx (line 3)
+  - components/WorkflowHeader.jsx (line 4)
+
+In ALL 5 files, change:
+  FROM:  const API_URL = 'http://localhost:5002';
+  TO:    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5002';
+
+Then create a file: client/.env.production
+  VITE_API_URL=https://yourdomain.com
+
+(Replace yourdomain.com with your actual domain or VPS IP)
+
+───── CHANGE 2: Make Google Sheets redirect URI configurable ─────
+
+File: server/services/sheetsService.js (line 13)
+
+  FROM:  const REDIRECT_URI = `http://localhost:${process.env.PORT || 5002}/api/sheets/auth/callback`;
+  TO:    const REDIRECT_URI = process.env.GOOGLE_SHEETS_REDIRECT_URI || `http://localhost:${process.env.PORT || 5002}/api/sheets/auth/callback`;
+
+Then add to your production .env on the VPS:
+  GOOGLE_SHEETS_REDIRECT_URI=https://yourdomain.com/api/sheets/auth/callback
+
+IMPORTANT: You must also add this redirect URI to your Google Cloud Console:
+  1. Go to https://console.cloud.google.com
+  2. APIs & Services → Credentials
+  3. Click your OAuth 2.0 Client ID
+  4. Under "Authorized redirect URIs", add: https://yourdomain.com/api/sheets/auth/callback
+
+===============================================================================
+3. SETTING UP .gitignore
+===============================================================================
+
+Create a file called .gitignore in the ROOT of the project (same level as .env):
+
+# ─── .gitignore ───────────────────────────────────────────
+# Environment & secrets
+.env
+.google_tokens.json
+.sheet_ids.json
+
+# Node
+node_modules/
+client/node_modules/
+server/node_modules/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Build output (built on server)
+client/dist/
+
+# Scraper output (generated at runtime)
+jobs_scraper-main/extracted json/*.json
+jobs_scraper-main/funded_json/*.json
+
+# IDE
+.vscode/
+.idea/
+# ──────────────────────────────────────────────────────────
+
+===============================================================================
+4. GITHUB SETUP
+===============================================================================
+
+Run these FROM the project root (/Users/aryanmalhotra/n8n backend work):
+
+  git init
+  git add .
+  git commit -m "Initial commit - lead gen automation"
+  git branch -M main
+  git remote add origin https://github.com/YOUR_USERNAME/YOUR_REPO.git
+  git push -u origin main
+
+Double-check that .env, .google_tokens.json, and .sheet_ids.json are NOT
+in the commit (they should be .gitignored).
+
+===============================================================================
+5. VPS SERVER SETUP (Hostinger)
+===============================================================================
+
+SSH into your VPS:
+  ssh root@YOUR_VPS_IP
+
+───── Step 5.1: Update system ─────
+  apt update && apt upgrade -y
+
+───── Step 5.2: Install Node.js 20+ ─────
+  curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+  apt install -y nodejs
+  node -v   # should show v20.x+
+  npm -v
+
+───── Step 5.3: Install Python 3 + pip ─────
+  apt install -y python3 python3-pip python3-venv
+  pip3 install requests beautifulsoup4 lxml
+
+───── Step 5.4: Install MongoDB ─────
+  # For Ubuntu 22.04:
+  curl -fsSL https://www.mongodb.org/static/pgp/server-7.0.asc | gpg --dearmor -o /usr/share/keyrings/mongodb-server-7.0.gpg
+  echo "deb [ signed-by=/usr/share/keyrings/mongodb-server-7.0.gpg ] https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/7.0 multiverse" | tee /etc/apt/sources.list.d/mongodb-org-7.0.list
+  apt update
+  apt install -y mongodb-org
+  systemctl start mongod
+  systemctl enable mongod
+  mongosh --eval "db.runCommand({ping:1})"   # should say { ok: 1 }
+
+───── Step 5.5: Install PM2 (process manager) ─────
+  npm install -g pm2
+
+───── Step 5.6: Install Nginx (reverse proxy) ─────
+  apt install -y nginx
+  systemctl enable nginx
+
+───── Step 5.7: Install Certbot (SSL) ─────
+  apt install -y certbot python3-certbot-nginx
+
+===============================================================================
+6. DEPLOY THE APPLICATION
+===============================================================================
+
+───── Step 6.1: Clone repo ─────
+  cd /var/www
+  git clone https://github.com/YOUR_USERNAME/YOUR_REPO.git leadgen
+  cd leadgen
+
+───── Step 6.2: Install dependencies ─────
+  # Server dependencies
+  cd server
+  npm install
+  cd ..
+
+  # Client dependencies + build
+  cd client
+  npm install
+  npm run build    # Creates client/dist/
+  cd ..
+
+  # Python dependencies for scrapers
+  pip3 install requests beautifulsoup4 lxml
+
+───── Step 6.3: Create production .env ─────
+  nano .env
+
+  Paste this (fill in your actual values):
+  ┌─────────────────────────────────────────────────────────────────┐
+  │ MONGO_URI=mongodb://127.0.0.1:27017/leadgen                    │
+  │ PORT=5002                                                      │
+  │ SEARCH_ENGINE_ID=your_search_engine_id                         │
+  │ SEARCH_ENGINE_API_KEY=your_search_engine_api_key               │
+  │ APIFY_API_KEY=your_apify_api_key                               │
+  │ SNOV_CLIENT_ID=your_snov_client_id                             │
+  │ SNOV_CLIENT_SECRET=your_snov_client_secret                     │
+  │ GOOGLE_SHEETS_CLIENT_ID=your_google_sheets_client_id           │
+  │ GOOGLE_SHEETS_CLIENT_SECRET=your_google_sheets_client_secret   │
+  │ GOOGLE_SHEETS_REDIRECT_URI=https://yourdomain.com/api/sheets/auth/callback │
+  │ EXT_APIKEY_LINKEDIN_JOBS=generate-a-uuid                       │
+  │ EXT_APIKEY_STACKOVERFLOW_JOBS=generate-a-uuid                  │
+  │ EXT_APIKEY_MONSTER=generate-a-uuid                             │
+  │ EXT_APIKEY_YC_JOBS=generate-a-uuid                             │
+  │ EXT_APIKEY_WELLFOUND_JOBS=generate-a-uuid                      │
+  └─────────────────────────────────────────────────────────────────┘
+
+  NOTE: Use the SAME API keys if you want to keep existing accounts.
+  Generate NEW extension API keys if you want fresh ones.
+
+───── Step 6.4: Configure Nginx ─────
+  nano /etc/nginx/sites-available/leadgen
+
+  Paste this:
+  ┌─────────────────────────────────────────────────────────────────┐
+  │ server {                                                        │
+  │     listen 80;                                                  │
+  │     server_name yourdomain.com;                                 │
+  │                                                                 │
+  │     # Serve React frontend                                      │
+  │     root /var/www/leadgen/client/dist;                           │
+  │     index index.html;                                           │
+  │                                                                 │
+  │     # API proxy to Node.js backend                               │
+  │     location /api/ {                                             │
+  │         proxy_pass http://127.0.0.1:5002;                        │
+  │         proxy_http_version 1.1;                                  │
+  │         proxy_set_header Upgrade $http_upgrade;                  │
+  │         proxy_set_header Connection 'upgrade';                   │
+  │         proxy_set_header Host $host;                             │
+  │         proxy_cache_bypass $http_upgrade;                        │
+  │         proxy_read_timeout 300s;                                 │
+  │     }                                                            │
+  │                                                                  │
+  │     # Socket.IO proxy                                            │
+  │     location /socket.io/ {                                       │
+  │         proxy_pass http://127.0.0.1:5002;                        │
+  │         proxy_http_version 1.1;                                  │
+  │         proxy_set_header Upgrade $http_upgrade;                  │
+  │         proxy_set_header Connection 'upgrade';                   │
+  │         proxy_set_header Host $host;                             │
+  │     }                                                            │
+  │                                                                  │
+  │     # React SPA fallback                                         │
+  │     location / {                                                 │
+  │         try_files $uri $uri/ /index.html;                        │
+  │     }                                                            │
+  │ }                                                                │
+  └─────────────────────────────────────────────────────────────────┘
+
+  Enable the site:
+  ln -s /etc/nginx/sites-available/leadgen /etc/nginx/sites-enabled/
+  rm /etc/nginx/sites-enabled/default    # Remove default site
+  nginx -t                                # Test config
+  systemctl restart nginx
+
+───── Step 6.5: Get SSL certificate ─────
+  certbot --nginx -d yourdomain.com
+  # Follow prompts, choose redirect HTTP to HTTPS
+
+───── Step 6.6: Start the backend with PM2 ─────
+  cd /var/www/leadgen/server
+  pm2 start server.js --name "leadgen-api"
+  pm2 save
+  pm2 startup    # Auto-start on reboot — run the command it outputs
+
+───── Step 6.7: Verify ─────
+  curl http://localhost:5002/api/health     # Should return {"status":"ok"}
+  # Visit https://yourdomain.com in browser — should see the frontend
+
+===============================================================================
+7. GOOGLE SHEETS AUTH ON PRODUCTION
+===============================================================================
+
+The Google Sheets OAuth flow needs to be done ONCE on the new server:
+
+  1. Make sure GOOGLE_SHEETS_REDIRECT_URI in .env points to your domain:
+     https://yourdomain.com/api/sheets/auth/callback
+
+  2. In Google Cloud Console, add this URL to Authorized Redirect URIs.
+
+  3. Visit in your browser:
+     https://yourdomain.com/api/sheets/auth
+
+  4. Sign in with your Google account and authorize.
+
+  5. You'll be redirected back. The server saves tokens to .google_tokens.json.
+
+  6. Now run a pipeline — ensureSheets() will create 4 new Google Sheets
+     automatically and save their IDs to .sheet_ids.json.
+
+===============================================================================
+8. CHROME EXTENSION CONFIG UPDATE
+===============================================================================
+
+After deployment, update your Chrome extensions with:
+
+  Server URL: https://yourdomain.com
+  API Key:    (the new EXT_APIKEY_* values from your production .env)
+
+The extensions will POST to: https://yourdomain.com/api/jobs/batch
+
+===============================================================================
+9. TROUBLESHOOTING
+===============================================================================
+
+  pm2 logs leadgen-api          # View backend logs
+  pm2 restart leadgen-api       # Restart backend
+  systemctl status nginx        # Check Nginx
+  systemctl restart nginx       # Restart Nginx
+  mongosh                       # Check MongoDB
+  certbot renew --dry-run       # Test SSL renewal
+
+If scrapers fail:
+  python3 /var/www/leadgen/jobs_scraper-main/job_scrapers/scrape_arcdev.py
+  # Run manually to debug
+
+If Google Sheets auth fails:
+  rm /var/www/leadgen/.google_tokens.json
+  # Re-authorize at https://yourdomain.com/api/sheets/auth
+
+To update code after making changes:
+  cd /var/www/leadgen
+  git pull origin main
+  cd client && npm run build && cd ..
+  pm2 restart leadgen-api
+
+===============================================================================
+ END OF GUIDE
+===============================================================================

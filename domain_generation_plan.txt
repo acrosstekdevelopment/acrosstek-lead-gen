@@ -1,0 +1,81 @@
+# Step 6 — Company Domain Generation Plan
+
+## Problem
+
+Step 6 requires a company website domain to pass to the Snov.io email finder API. We have two data points available: Company Name and Company LinkedIn URL (from Step 4).
+
+## Approach: Google Custom Search Engine API
+
+We use the same Google CSE API already configured in the project (.env) to find the company's official website domain.
+
+### Google Search Query
+
+query = "{company_name}" official website -site:linkedin.com -site:facebook.com -site:twitter.com -site:instagram.com -site:youtube.com -site:crunchbase.com -site:glassdoor.com -site:wikipedia.org
+
+This query excludes social media and aggregator sites to surface the company's actual domain.
+
+### API Call
+
+url: https://www.googleapis.com/customsearch/v1
+query parameters:
+    q: search query as above
+    cx: SEARCH_ENGINE_ID in .env
+    key: SEARCH_ENGINE_API_KEY in .env
+    num: 3
+
+### Domain Extraction Logic
+
+1. From the top 3 results, extract the root domain from each result URL.
+2. Filter out any remaining social media / aggregator domains that slipped through.
+3. Pick the first valid domain as the company domain.
+4. If no valid domain is found, set all employees of this company to EMAIL_ERROR and log the failure.
+
+### Rate Limit Handling
+
+IMPORTANT: This shares the 100 searches/day free quota with Step 4 LinkedIn URL lookups.
+
+Since Step 4 (LinkedIn URL search) and Step 6 (domain search) both use Google CSE:
+- Total budget per day = 100 searches
+- Each company needs 2 searches: 1 for LinkedIn URL (Step 4) + 1 for domain (Step 6)
+- Maximum companies per day = ~50
+
+If the daily limit is reached mid-pipeline:
+1. Stop all Google CSE API calls immediately
+2. Queue remaining companies for the next 24-hour window
+3. Log a message: "Google CSE daily limit reached. Remaining companies queued for next cycle."
+4. Do NOT mark queued companies as ERROR — they retain their current status (EMPLOYEES_SCRAPED) and will be processed when the quota resets
+
+### Error Handling
+
+- Google CSE returns results → extract domain, proceed to email search
+- Google CSE returns no results → set all employees of this company to EMAIL_ERROR, log the failure
+- Google CSE returns error (non-rate-limit) → set all employees to EMAIL_ERROR, log the error
+- Google CSE rate limit hit (HTTP 429 or quota exceeded) → stop all CSE calls for 24 hours, queue remaining companies and employees for next cycle
+- Domain found but Snov email search fails → follow existing Snov error handling rules in product_description.txt
+
+### Domain Caching
+
+Once a domain is found for a company, store it in MongoDB (company_domain field on the company record). This avoids re-looking up the domain if the pipeline is restarted or on subsequent runs. This field is internal — it does NOT appear in the Google Sheets table columns.
+
+---
+
+## Execution Flow
+
+1. Collect employees with status=NEW in Table 2a/2b
+2. Group employees by Company ID
+3. For each company: check if company_domain already cached in MongoDB
+   a. If cached → skip to step 5
+   b. If not cached → call Google CSE to find domain
+4. If domain found → cache it in MongoDB, proceed. If not → EMAIL_ERROR for all employees of this company.
+5. Call Snov Email Finder with domain + employee first/last name
+6. Poll for results / classify emails per product_description.txt rules
+7. Update Table 2a/2b employee statuses
+8. Update Table 1a/1b company statuses
+
+---
+
+## Changes Needed in product_description.txt
+
+1. Step 6, line 262: Replace "needs to be researched" with: "We use Google CSE to find the company domain. See @domain_generation_plan.txt for details."
+2. Add company_domain as a stored field in MongoDB (not in Google Sheets columns)
+3. Update rate_limits.txt to note that Google CSE quota is shared between Step 4 and Step 6 (effectively ~50 companies/day max)

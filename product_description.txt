@@ -1,0 +1,356 @@
+Tech stack- MERN
+Files to cross-reference- 
+    @app_flow.txt - contains data about user flow and button flows. data about which frontend component leads to what.
+    @backend_schema.txt - contains database schema. about how the tables are strucutured and data is maintained.
+    @frontend_guidelines.txt - contains frontend guidelines
+    @job_filters.txt - contains job filters
+    @rate_limits.txt - contains rate limits for all api being used in the code
+    @implementation_plan.txt - contains implementation plan
+
+MUST DO GUIDELINES-
+    1. the entire code is dependent on rate limits being met. Hence, refer to rate_limits.txt for rate limits, if rate limit for some service is not mentioned in rate_limits.txt, then research the internet and add the rate limit to the code. Notify the user about doing so
+    2. If any api service does not give a response, gives a blank response or gives an error, then the code should not crash. Instead, it should log the error and stop running the workflow for that particular data, type "error" in all fields for that. data, status=ERROR in table 1a and 1b and move on to the next data. This rule must be neglected if contradicting with the step description.
+    3. All the tables or data structures defined in this doc are defined with a structure like google sheets or microsoft excel. It is the job of the ai to convert this structure into a structure that will work in MERN stack.
+    4. All scrapers are coded in python, hence the code should allow python scrapers to run and give output without letting it affect the MERN structure of the rest of the application.
+
+product overview-
+it is a lead generation automation software.
+
+Step -1
+front-end-
+user sees 3 grids of scrapers. each grid contains a run all button. within the grid, user can click a particular scraper to run it.
+1. job scrapers
+2. funding scrapers
+3. chrome extensions(run all or run individually not possible here)
+
+working-
+
+1. job scrapers- 
+    /Users/aryanmalhotra/n8n backend work/jobs_scraper-main/job_scrapers this folder is the folder that contains code for all job scrapers. this code is in python. this code when executed returns a json output. the json output format can be referenced from examples stored in corresponding files in /Users/aryanmalhotra/n8n backend work/jobs_scraper-main/extracted json .
+
+    output format for all job scrapers- 
+    {
+    "source": "scraper name",
+    "job_url": "job url",
+    "title": "job title",
+    "company": "company name",
+    "location": "location"
+  }
+    when user runs all scrapers or runs one scraper, the scraper code is executed and the json output is stored in the database for next steps.
+
+2. funding scrapers- 
+    /Users/aryanmalhotra/n8n backend work/jobs_scraper-main/funding_scrapers this folder is the folder that contains code for all funding scrapers. this code is in python. this code when executed returns a json output. the json output format can be referenced from examples stored in corresponding files in /Users/aryanmalhotra/n8n backend work/jobs_scraper-main/funded_json .
+
+    output format for all funding scrapers- 
+    {
+    "company": "company name",
+    "funding_amount": "funding amount",
+    "funding_stage": "funding stage",
+    "title": "title",
+    "source": "source"
+  }
+    when user runs all scrapers or runs one scraper, the scraper code is executed and the json output is stored in the database for next steps.
+
+3. chrome extensions- 
+    there are 5 chrome extensions separately running on the deployment server. they scrape the jobs data from different websites in the same format as job scrapers.
+    We need to generate an api key which the user can input in the chrome extensions UI to send the scraped data in our database. once recieved, we show the user an indication that the data has been recieived. 
+
+    output format for all chrome extensions- 
+    {
+    "source": "scraper name",
+    "job_url": "job url",
+    "title": "job title",
+    "company": "company name",
+    "location": "location"
+  }
+    each chrome extension card shows when the last data was recieved. user can run the chrome extension by clicking on the card or run all button. running the scrapers means that user has triggered the workflow run using the latest data receieved by the extensions.
+    chrome extensions- linkedin jobs, stackoverflow jobs, monster.com, yc jobs, wellfound jobs. make sure you generate a separate api key for each so that data from the correct extension lands in the correct database.
+
+error handling-
+    1. Scrapers must be run in a way that they dont get blocked. i.e. system should prevent repeated run requests for the same scrapers. limit- 1 run every 2 hrs for each scraper if the first run was successful. if the first run failed, then the user should be allowed to run the scraper again immediately.
+    2. if a scraper does not return an output in 120 seconds, it should be considered as failed.
+success/failure frontend-
+    1. all success/failure messages are to be shown in the log panel on the website.
+
+Step -2 - purely backend
+
+applicable to job scraper and chrome extension data-
+    when the data is receieved, they contain all different kinds of jobs data and job titles which need to be filtered.
+    before sending the data to the next step, we need to match the "title" field in the scraped data with the job titles in the the file @/Users/aryanmalhotra/n8n backend work/job_filters.txt. if the title is matched, we send the data to the next step. if the title is not matched, we discard the data. 
+    before matching titles, both incoming data and filters mentioned in @/Users/aryanmalhotra/n8n backend work/job_filters.txt should be converted to lowercase.
+    only the titles that pass this filter are sent to the next step.
+
+step -3 - purely backend
+
+goal- Maintaining company records.
+working- 
+    In this step, we put all the data in table 1a and table 1b- company table.
+    Before putting data in the table 1a and 1b, company name and location(if available) must be normalised(lowercased and extra spaces removed(spaces more than 1 should be replaced with a single space, leading and trailing spaces should be removed)). Then a company ID is to be generated using only the company name. Then it must be checked if the company with the same id (and/or name) is present in the table, if yes, then incoming data is discarded. If no, then incoming data is added to the table.
+    table 1a- job scrapers and chrome extensions data
+    table 1b- funding scrapers data
+
+Status values-
+    NEW
+    LINKEDIN_FOUND
+    EMPLOYEES_SCRAPED
+    EMAILS_ENRICHED
+    EMAIL_ERROR
+    ERROR
+
+Company Table 1a-
+    columns-
+        Company ID
+        Company Name
+        Company Location
+        source
+        title
+        job url
+        Status
+        company Linkedin url
+        Date added
+
+Company Table 1b-
+    columns-
+        Company ID
+        Company Name
+        News Title
+        Source
+        Funding amount
+        Funding stage
+        Date added
+        company Linkedin url
+        Status
+
+At this stage-
+1. company linkedin url column is to be left blank.
+2. All new entries are to be given status NEW.
+
+Error Handling- 
+1. if there is no company name or title in the incoming data for job scraper and chrome extension, discard the data immediately.
+2. if there is no company name or funding amount in the incoming data for funding scraper, discard the data immediately.
+3. if any other fields are blank, the data is still added to the table and empty columns are given data- "empty".
+
+Step -4 - purely backend
+
+goal-find linkedin url for the company.
+working- 
+    1. We use google custom search engine api to find the linkedin url for the company. 
+    2. using the google search query, we pull results from google search engine. 
+    3. the top result for the url is kept as the final result and added to the company linkedin url column in table 1a and 1b. 
+    4. the status is updated to LINKEDIN_FOUND.
+    5. if google search engine api gives an error message- check if rate limits exceeded- if yes, stop all google search engine api calls for 24 hours. if no, status in table 1a and 1b is updated to ERROR.
+    6. if google search engine api does not give an output-check if rate limits exceeded- if yes, stop all google search engine api calls for 24 hours. if no, status in table 1a and 1b is updated to ERROR.
+    
+google search query for table 1a- 
+    const name = $json['company name'];
+    const location = $json['company location'];
+
+    const query = `site:linkedin.com/company "${name}" "${location}"`;
+
+    return {
+    ...$json,
+    google_query: query
+    };
+
+google search query for table 1b- 
+    const name = $json['company name'];
+
+    const query = `site:linkedin.com/company "${name}"`;
+
+    return {
+    ...$json,
+    google_query: query
+    };
+
+google search engine- 
+    url- https://www.googleapis.com/customsearch/v1
+    query parameters- 
+        q- google search query as mentioned above
+        cx- SEARCH_ENGINE_ID in .env file
+        key- SEARCH_ENGINE_API_KEY in .env file
+        value-5
+
+
+Step -5 - purely backend
+
+goal-find employees for the company.
+working- 
+    1. company with status=LINKEDIN_FOUND in table 1a and 1b is sent to run an apify query.
+    2. apify query returns an output with multiple employees data.
+    3. this apify data is to be added to table 2a and table 2b with status= NEW. Before adding, we have to check if the employee is already present in the table. If yes, we dont add the employee. If no, we add the employee. We check using the employee id.
+    4. the status in table 1a and 1b is updated to EMPLOYEES_SCRAPED or ERROR.
+    5. Email ID column is to be left blank in this step.
+    
+Details-
+    1. apify query- 
+            {
+            "companies": [""],
+            "profileScraperMode": "Short ($4 per 1k)",
+            "maxItems": 25,
+            "jobTitles": [
+            "CEO",
+            "Founder",
+            "CTO",
+            "Head of Engineering",
+            "VP of Engineering",
+            "Director of Engineering",
+            "Senior Director of Engineering",
+            "SVP of Engineering",
+            "Head of Tech",
+            "Chief Architect",
+            "Principal Architect",
+            "Engineering Manager",
+            "Global Head of Engineering",
+            "Product Head",
+            "Global Head of Product",
+            "Head of AI",
+            "Head of GenAI",
+            "Head AI ML",
+            "Managing Director – AI & Data",
+            "Chief of Staff"
+            ],
+            "startPage": 1
+            }
+    2. apify API- APIFY_API_KEY in .env file ; apify actor- https://console.apify.com/actors/Vb6LZkh4EqRlR0Ka9
+
+Data Handling and Definition-
+    1. Table 2a-
+        columns-
+            Company ID
+            Company Name
+            Job Title
+            Employee ID
+            First Name
+            Last Name
+            Employee Title
+            Employee Linkedin URL
+            Email ID
+            Status
+            Date added
+
+    2. Table 2b-
+        columns-
+            Company ID
+            Company Name
+            Funding Amount
+            Funding Stage
+            Employee ID
+            First Name
+            Last Name
+            Employee Title
+            Employee Linkedin URL
+            Email ID
+            Status
+            Date added
+
+Data Maturity-
+1. once a company goes into apify for employee scraping,
+    if apify gives an error, status in table 1a and 1b is updated to ERROR.
+    if apify doesnt give an output or the output is empty(no error message as well), status in table 1a and 1b is updated to ERROR.
+    if apify gives an output, the status is updated to EMPLOYEES_SCRAPED.
+2. System has to ensure that once a company has been sent to apify for scraping, it shall never be sent again, hence all edge cases are to be kept in mind which might lead to status not getting changed after apify api is called for a particular company. Only companies with status=LINKEDIN_FOUND in table 1a and 1b are to be sent to apify for scraping.
+
+Error Handling- 
+1. If apify gives an error, the status in table 1a and 1b is updated to ERROR. and the error is shown in the log table in frontend.
+2. if apify doesnt give and output or the output is empty(no error message as well), status in table 1a and 1b is updated to ERROR and workflow run is skipped for that company and we move on to the next company.
+
+
+Step 6- purely backend
+
+goal- find emails for the employees.
+working-
+    1. We first develop or search for company website url using the company name and company linkedin url. (needs to be researched to find the best way to do so)
+    2. Then, we request a snov access token
+    3a. Using this, we search for emails for the employees using snov api.
+    3b. We send only the employees with status=NEW in table 2a and 2b to snov for scraping.
+    4. snov works asynchronously for email search using api. Hence, if snov gives the status output= in_progress, we need to check again in 5 minutes if the status is still in_progress. We continue doing this until the status is not in_progress, and then add the email id to the email id column in table 2a and 2b. If the status is error, we update the status in table 2a and 2b to ERROR.
+    5. once the emails are successfully scraped. i.e. all requests are out of in_progress status, we update the status in table 2a and 2b to EMAIL_FOUND for those employees where emails did get scraped, otherwise status=EMAIL_ERROR.
+
+details-
+1. snov access token-
+    url- https://api.snov.io/v1/oauth/access_token
+    method- POST
+    body- 
+        client_id=SNOV_CLIENT_ID
+        client_secret=SNOV_CLIENT_SECRET
+        grant_type=client_credentials
+    
+2. snov email search-
+    url(read find emails from name and domain docs)- https://snov.io/api#EmailFinder
+    method- POST
+    search query-
+    {
+
+  "access_token": "access token that we found in previous step",
+
+  "firstName": "first name from table 2a/2b",
+  "lastName": "last name from table 2a/2b",
+  
+  "domain": "company domain that we generated in this step",
+  "companyName": "company name from table 1a/1b"
+}
+
+3. snov output classification-
+    applicable when status= completed (in snov output) - if yes then we check for the conditions below.
+    if snov output status says in_progress, we check again in 5 minutes.
+    if snov output status says error, we update the status in table 2a and 2b to EMAIL_ERROR.
+    
+
+https://snov.io/api#EmailFinder read find emails from name and domain docs for this.
+
+    a. if smtp_status= unknown, then we proceed to check further conditions
+    if smtp_status= valid, then we add the email to email id column in table 2a and 2b. and status=EMAIL_FOUND; No need to check for other conditions
+
+    b. is_valid_format_check- if false, then we dont add the email id to the email id column in table 2a and 2b. and status=EMAIL_ERROR.
+    if true, then we proceed to check the next condition
+
+    c. is_disposable_check- if true, then we dont add the email id to the email id column in table 2a and 2b. and status=EMAIL_ERROR.
+    if false, then we proceed to check the next condition
+
+    d. unknown_status_reason= banned - add email to email id column in table 2a and 2b. and status=EMAIL_UNKNOWN.
+    unknown_status_reason= catchall - add email to email id column in table 2a and 2b. and status=EMAIL_FOUND.
+    unknown_status_reason= connection_error - add email to email id column in table 2a and 2b. and status=EMAIL_FOUND.
+    unknown_status_reason= greylist - add email to email id column in table 2a and 2b. and status=EMAIL_FOUND.
+
+
+Data Maturity-
+2. if snov doesnt give an output or the output is empty(no error message as well), status in table 2a and 2b is updated to ERROR.
+3. if snov gives an output, the status is updated to EMAILS_ENRICHED in table 1a and 1b for the company, if all employees scraping failed for a company, then status=ERROR in table 1a,1b, and for those employees where emails did get scraped, in table 2a and 2b , status=EMAIL_FOUND, otherwise status=EMAIL_ERROR - based on the snov output classification conditions.
+4. System has to ensure that once a employee has been sent to snov for scraping, it shall never be sent again, hence all edge cases are to be kept in mind which might lead to status not getting changed after snov api is called for a particular employee. Only employees with status=NEW in table 2a and 2b are to be sent to snov for scraping.
+
+error handling-
+1. if snov outputs more than 1 email for 1 person, check snov output classification for both emails. whichever one is better is added to email id column in table 2a and 2b. How to tell which is better- 
+    a. if one of the emails is valid and the other is not, then the valid one is better.
+    b. if both are valid, then check for other conditions.
+    c. check if_disposable field. if one is true and other is false, then the email with this status=true is discarded. if both are false, check for other conditions, if both are true, discard both of them and status=EMAIL_ERROR.
+    d. check for is_valid_format_check. if both are false, then discard both of them and status=EMAIL_ERROR. if one is true and other is false, then the email with this status=true is better. if both are true, check for other conditions.
+    e. if all above conditions led to this condition, that means both emails are of unknown status, then the first email is selected and 2nd one is discarded.
+
+
+step 7- 
+
+goal- show all of this data in google sheets upon completion of step 4 and 6 respectively.
+
+working-
+    1. table 1a and 1b are appended with new data upon completion of step 4 with the column structure mentioned before.
+    2. upon completion of step 6, table 1a,1b are updated to put the latest status of the company.
+    3. table 2a and 2b are appended with new data upon completion of step 6 with the column structure mentioned before.
+
+details-
+    1. google sheets api- GOOGLE_SHEETS_CLIENT_ID and GOOGLE_SHEETS_CLIENT_SECRET in env file
+    2. in the first run, we will have to create new sheets for table 1a,1b,2a,2b. and the sheet id will be stored in the env file.
+    3. in the subsequent runs, we will use the sheet id to append the new data to the existing sheets.
+
+data handling and definition- 
+check backend_schema.txt for data base structures
+
+Frontend-
+    1. google sheets are embeeded in the page 2 and page 3 of the website.
+    2. upon appending the data, the google sheets will automatically update in the embed column.
+    3. while the workflow is running, a progress bar will be shown in the header
+    4. when the workflow is completed, the progress bar will be updated to 100% and a success message will be shown in the header.
+    5. completion message will contain info of how many rows were added in which table.
+
+
+
+            

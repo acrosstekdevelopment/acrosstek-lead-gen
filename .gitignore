@@ -1,0 +1,24 @@
+# Environment & secrets
+.env
+.google_tokens.json
+.sheet_ids.json
+
+# Node
+node_modules/
+client/node_modules/
+server/node_modules/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Build output (built on server)
+client/dist/
+
+# Scraper output (generated at runtime)
+jobs_scraper-main/extracted json/*.json
+jobs_scraper-main/funded_json/*.json
+
+# IDE
+.vscode/
+.idea/

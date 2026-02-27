@@ -1,0 +1,33 @@
+Google Sheets API — 
+	•	Read requests:
+	•	300/min per project
+	•	60/min per user per project
+	•	Write requests:
+	•	300/min per project
+	•	60/min per user per project
+	•	Requests refill every minute
+	•	No hard daily limit if you stay within minute quotas
+	•	Requests over limit → HTTP 429
+	•	Single request timeout: ~180 seconds  ￼
+
+
+⸻
+
+Google Custom Search API — 
+
+Standard Custom Search JSON API
+	•	Free quota: 100 searches/day
+	•	After that → paid billing required  ￼
+
+-----
+
+APIFY-
+
+    50 runs/day
+    2 runs/minute
+
+-----
+
+SNOV.IO-
+
+    750 persons/day

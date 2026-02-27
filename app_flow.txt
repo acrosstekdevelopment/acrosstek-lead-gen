@@ -1,0 +1,18 @@
+sidebar-
+    homepage
+    company details - page with table 1a and 1b
+    stakeholder details - page with table 2a and 2b
+    logs
+
+homepage-
+    run all buttons for each grid and clicking on each card in the grids triggers the workflow run for the selected scraper(s) or extension(s).
+
+company details-
+    tabs can be clicked to navigate between table 1a and table 1b.
+    
+stakeholder details-
+    tabs can be clicked to navigate between table 2a and table 2b.
+    
+logs-
+    no buttons. just a log panel showing the logs.
+    

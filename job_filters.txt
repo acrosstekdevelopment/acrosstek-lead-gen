@@ -1,0 +1,958 @@
+Technology/Skills:
+—--------------------------------------------------
+
+1. Front-End Developers / Tech Leads
+Frameworks & Libraries
+	•	React.js, Next.js (App Router, Server Actions)
+	•	Angular, Vue.js, Nuxt.js
+	•	TypeScript, JavaScript (ES6+)
+	•	Web Components, Micro-Frontends
+UI & Styling
+	•	Tailwind CSS, Bootstrap, Material UI, Ant Design
+	•	CSS3, SCSS, LESS
+Performance & SEO
+	•	Core Web Vitals
+	•	SSR, SSG, ISR
+	•	Accessibility (WCAG, ARIA)
+
+2. Back-End Developers / Tech Leads
+Languages & Frameworks
+	•	Node.js (NestJS, Express)
+	•	Java (Spring Boot, Micronaut)
+	•	.NET Core / ASP.NET
+	•	Python (Django, Flask, FastAPI)
+	•	PHP (Laravel, Yii, CodeIgniter)
+	•	C++, Go, Ruby on Rails
+Architecture
+	•	Microservices
+	•	Event-Driven Architecture
+	•	REST, GraphQL, gRPC
+Messaging & Streaming
+	•	Kafka, RabbitMQ, MQTT
+	•	Apache Pulsar, AWS SQS/SNS
+
+3. Full-Stack Developers
+	•	React + Node.js
+	•	Angular + Java
+	•	Vue + Laravel
+	•	Next.js + Node / Python
+	•	MERN / MEAN / JAMstack
+
+4. Mobile Application Developers
+	•	Android (Kotlin, Java)
+	•	iOS (Swift, SwiftUI)
+	•	React Native
+	•	Flutter
+	•	Progressive Web Apps (PWA)
+	•	Mobile CI/CD & App Store Deployment
+
+5. Cloud Engineers
+Cloud Platforms
+	•	AWS, Azure, GCP
+	•	DigitalOcean, Linode
+Cloud Services
+	•	Compute, Networking, Storage
+	•	IAM, VPC/VNet, Load Balancers
+	•	Serverless (Lambda, Azure Functions)
+Containers & Orchestration
+	•	Docker
+	•	Kubernetes (EKS, AKS, GKE)
+	•	Helm, Kustomize
+
+6. DevOps & Platform Engineers
+	•	CI/CD: Jenkins, GitHub Actions, GitLab CI
+	•	IaC: Terraform, ARM, CloudFormation
+	•	Configuration: Ansible, Chef, Puppet
+	•	Monitoring: Prometheus, Grafana, ELK
+	•	Observability: OpenTelemetry, Datadog
+	•	SRE Practices
+
+7. QA & Testing
+Manual QA
+	•	Functional, Regression, UAT
+	•	Test Case Design, Defect Management
+Automation QA
+	•	Selenium, Cypress, Playwright
+	•	Appium (Mobile)
+	•	RestAssured, Postman, Newman
+	•	JMeter, K6 (Performance)
+	•	BDD: Cucumber, Gherkin
+	•	Katalon, Carina
+
+8. Data Engineering & Analytics
+Data Platforms
+	•	Snowflake, Redshift, BigQuery
+	•	Azure Synapse Analytics
+Data Engineering
+	•	ETL / ELT Pipelines
+	•	Apache Airflow, DBT
+	•	Data Warehousing (DWH)
+	•	Data Lakes (Delta Lake, Iceberg)
+Visualization
+	•	Power BI
+	•	Tableau
+	•	Qlik Sense
+	•	Looker
+
+9. Big Data Engineers
+	•	Apache Spark
+	•	Hadoop
+	•	Kafka Streams
+	•	Databricks
+	•	Real-time Data Processing
+
+10. Database Developers & DBAs
+	•	SQL Server, PostgreSQL, Oracle
+	•	MySQL, MongoDB
+	•	Cassandra, DynamoDB
+	•	GraphQL APIs
+	•	Redis, ElasticSearch
+
+11. Salesforce Engineers (Expanded)
+Salesforce Clouds
+	•	Sales Cloud
+	•	Service Cloud
+	•	Experience Cloud
+	•	Marketing Cloud
+	•	Commerce Cloud
+	•	Health Cloud, Financial Services Cloud
+Development
+	•	Apex
+	•	Lightning Web Components (LWC)
+	•	Aura Components
+	•	SOQL / SOSL
+Integrations
+	•	REST/SOAP APIs
+	•	MuleSoft
+	•	Platform Events
+	•	External Services
+Administration
+	•	Flows, Process Builder
+	•	Security & Sharing Models
+	•	CPQ
+	•	Data Migration & Governance
+
+12. SAP Engineers (Expanded)
+Core SAP
+	•	SAP ABAP
+	•	SAP S/4HANA
+	•	SAP ECC
+Functional Modules
+	•	FICO
+	•	MM
+	•	SD
+	•	PP
+	•	HCM
+Modern SAP
+	•	SAP BTP
+	•	SAP Fiori
+	•	SAP UI5
+	•	SAP Integration Suite
+	•	SAP Analytics Cloud
+
+13. Oracle & NetSuite Engineers
+Oracle
+	•	Oracle Database
+	•	Oracle Fusion
+	•	Oracle ERP Cloud
+	•	PL/SQL
+NetSuite
+	•	NetSuite ERP
+	•	SuiteScript
+	•	SuiteFlow
+	•	SuiteTalk APIs
+	•	Financials, CRM, Inventory
+
+14. Microsoft Dynamics Engineers
+	•	Dynamics 365 Business Central
+	•	Finance & Operations
+	•	Power Platform (Power Apps, Power Automate)
+	•	Dataverse
+	•	Azure Integration
+
+15. AI / ML Engineers
+ML & AI Frameworks
+	•	TensorFlow
+	•	PyTorch
+	•	Scikit-learn
+	•	Keras
+Platforms
+	•	Azure ML
+	•	Amazon SageMaker
+	•	Databricks ML
+	•	Vertex AI
+Use Cases
+	•	Predictive Analytics
+	•	NLP
+	•	Computer Vision
+	•	Recommendation Systems
+
+16. Generative AI Engineers
+	•	OpenAI APIs
+	•	Azure OpenAI
+	•	Anthropic, Cohere
+	•	LangChain, LlamaIndex
+	•	RAG (Retrieval-Augmented Generation)
+	•	Vector Databases (Pinecone, Weaviate, FAISS)
+	•	Prompt Engineering
+	•	AI Fine-Tuning
+
+17. Agentic AI Engineers
+	•	Autonomous AI Agents
+	•	Tool-Calling Agents
+	•	Multi-Agent Systems
+	•	Workflow Orchestration
+	•	Memory & Context Management
+	•	AI-Driven Automation
+	•	Enterprise AI Guardrails
+
+18. Blockchain Engineers
+	•	Solidity (Ethereum)
+	•	Rust (Solana)
+	•	Smart Contracts
+	•	Web3.js, Ethers.js
+	•	DeFi & NFT Platforms
+
+19. CMS & Digital Experience Platforms
+	•	WordPress
+	•	Drupal
+	•	AEM
+	•	Sitecore
+	•	Pimcore (PIM, DAM, DXP)
+
+20. E-Commerce Engineers
+	•	Shopify
+	•	Magento
+	•	WooCommerce
+	•	Headless Commerce
+	•	Payment Gateway Integrations
+
+21. UX/UI Designers
+	•	Figma
+	•	Sketch
+	•	Adobe XD
+	•	Design Systems
+	•	UX Research
+	•	Prototyping & Usability Testing
+
+22. Project, Product & Business Roles
+	•	Project Managers
+	•	Product Managers
+	•	Business Analysts
+	•	Scrum Masters
+	•	Technical Writers
+	•	Content Strategists
+
+23. L2 / L3 Support Engineers
+	•	Application Support
+	•	Production Monitoring
+	•	Incident & RCA Management
+
+
+==========================================================
+
+
+JOB TITLES
+1. Front-End Engineering Roles
+Front-End Developer
+
+
+Senior Front-End Developer
+
+
+Lead Front-End Engineer
+
+
+Principal Front-End Engineer
+
+
+React Developer
+
+
+Senior React Developer
+
+
+Next.js Developer
+
+
+Angular Developer
+
+
+Vue.js Developer
+
+
+UI Engineer
+
+
+Web Application Developer
+
+
+JavaScript Engineer
+
+
+TypeScript Engineer
+
+
+Micro-Frontend Engineer
+
+
+Web Performance Engineer
+
+
+Accessibility Engineer (WCAG)
+
+
+
+2. Back-End Engineering Roles
+Back-End Developer
+
+
+Senior Back-End Developer
+
+
+Lead Back-End Engineer
+
+
+Principal Software Engineer (Backend)
+
+
+Node.js Developer
+
+
+Java Developer
+
+
+Spring Boot Developer
+
+
+.NET Core Developer
+
+
+Python Developer
+
+
+Django Developer
+
+
+FastAPI Developer
+
+
+PHP Developer
+
+
+Laravel Developer
+
+
+Go Developer
+
+
+Ruby on Rails Developer
+
+
+API Developer
+
+
+Integration Engineer
+
+
+
+3. Full-Stack Engineering Roles
+Full-Stack Developer
+
+
+Senior Full-Stack Developer
+
+
+Lead Full-Stack Engineer
+
+
+MERN Stack Developer
+
+
+MEAN Stack Developer
+
+
+Full-Stack JavaScript Engineer
+
+
+Full-Stack Java Developer
+
+
+Full-Stack Python Developer
+
+
+Web Platform Engineer
+
+
+
+4. Mobile Application Roles
+Mobile Application Developer
+
+
+Senior Mobile App Developer
+
+
+Android Developer
+
+
+Senior Android Engineer
+
+
+iOS Developer
+
+
+Senior iOS Engineer
+
+
+Swift Developer
+
+
+React Native Developer
+
+
+Flutter Developer
+
+
+Cross-Platform Mobile Developer
+
+
+Mobile Tech Lead
+
+
+Mobile CI/CD Engineer
+
+
+
+5. Cloud Engineering Roles
+Cloud Engineer
+
+
+Senior Cloud Engineer
+
+
+Cloud Infrastructure Engineer
+
+
+Cloud Platform Engineer
+
+
+AWS Engineer
+
+
+Azure Cloud Engineer
+
+
+GCP Cloud Engineer
+
+
+Cloud Solutions Engineer
+
+
+Serverless Engineer
+
+
+Cloud Security Engineer
+
+
+
+6. DevOps & Platform Roles
+DevOps Engineer
+
+
+Senior DevOps Engineer
+
+
+DevOps Lead
+
+
+Platform Engineer
+
+
+Site Reliability Engineer (SRE)
+
+
+CI/CD Engineer
+
+
+Infrastructure Engineer
+
+
+Build & Release Engineer
+
+
+Cloud DevOps Engineer
+
+
+
+7. QA & Testing Roles
+Manual QA
+QA Engineer
+
+
+Manual QA Tester
+
+
+Senior QA Analyst
+
+
+UAT Tester
+
+
+QA Lead
+
+
+Automation QA
+QA Automation Engineer
+
+
+Senior Automation Tester
+
+
+SDET (Software Development Engineer in Test)
+
+
+Selenium Automation Engineer
+
+
+Cypress Automation Engineer
+
+
+Playwright Test Engineer
+
+
+Mobile Automation Engineer
+
+
+Performance Test Engineer
+
+
+
+8. Data Engineering & Analytics Roles
+Data Engineer
+
+
+Senior Data Engineer
+
+
+Data Platform Engineer
+
+
+Analytics Engineer
+
+
+ETL Developer
+
+
+Data Warehouse Engineer
+
+
+BI Engineer
+
+
+Analytics Consultant
+
+
+
+9. Big Data Roles
+Big Data Engineer
+
+
+Senior Big Data Engineer
+
+
+Spark Developer
+
+
+Hadoop Engineer
+
+
+Kafka Engineer
+
+
+Databricks Engineer
+
+
+Streaming Data Engineer
+
+
+
+10. Database & DBA Roles
+Database Developer
+
+
+Senior Database Developer
+
+
+Database Administrator (DBA)
+
+
+SQL Developer
+
+
+PostgreSQL DBA
+
+
+Oracle DBA
+
+
+MongoDB Engineer
+
+
+NoSQL Database Engineer
+
+
+Data Persistence Engineer
+
+
+
+11. Salesforce Job Titles
+Salesforce Developer
+
+
+Senior Salesforce Developer
+
+
+Salesforce Technical Lead
+
+
+Salesforce Administrator
+
+
+Salesforce Consultant
+
+
+Salesforce Architect
+
+
+Salesforce CPQ Consultant
+
+
+Salesforce Integration Engineer
+
+
+Marketing Cloud Developer
+
+
+Salesforce Business Analyst
+
+
+
+12. SAP Job Titles
+SAP Consultant
+
+
+SAP ABAP Developer
+
+
+SAP Technical Consultant
+
+
+SAP Functional Consultant
+
+
+SAP S/4HANA Consultant
+
+
+SAP FICO Consultant
+
+
+SAP MM Consultant
+
+
+SAP SD Consultant
+
+
+SAP BTP Developer
+
+
+SAP Integration Consultant
+
+
+SAP Solution Architect
+
+
+
+13. Oracle & NetSuite Job Titles
+Oracle Developer
+
+
+Oracle ERP Consultant
+
+
+Oracle Fusion Consultant
+
+
+Oracle Database Engineer
+
+
+PL/SQL Developer
+
+
+NetSuite Developer
+
+
+NetSuite Consultant
+
+
+NetSuite Technical Lead
+
+
+NetSuite ERP Specialist
+
+
+
+14. Microsoft Dynamics Job Titles
+Dynamics 365 Developer
+
+
+Dynamics 365 Consultant
+
+
+Business Central Developer
+
+
+Dynamics Finance & Operations Consultant
+
+
+Power Platform Developer
+
+
+Power Apps Engineer
+
+
+Power Automate Specialist
+
+
+Dynamics Solution Architect
+
+
+
+15. AI / ML Job Titles
+Machine Learning Engineer
+
+
+Senior ML Engineer
+
+
+AI Engineer
+
+
+Applied AI Engineer
+
+
+Data Scientist
+
+
+Senior Data Scientist
+
+
+ML Platform Engineer
+
+
+Computer Vision Engineer
+
+
+NLP Engineer
+
+
+
+16. Generative AI Job Titles
+Generative AI Engineer
+
+
+LLM Engineer
+
+
+AI Solutions Engineer
+
+
+Prompt Engineer
+
+
+RAG Engineer
+
+
+AI Integration Engineer
+
+
+AI Product Engineer
+
+
+Conversational AI Engineer
+
+
+
+17. Agentic AI Job Titles
+Agentic AI Engineer
+
+
+Autonomous AI Systems Engineer
+
+
+AI Agent Developer
+
+
+Multi-Agent Systems Engineer
+
+
+AI Workflow Engineer
+
+
+Enterprise AI Engineer
+
+
+AI Automation Architect
+
+
+
+18. Blockchain Job Titles
+Blockchain Developer
+
+
+Web3 Developer
+
+
+Smart Contract Developer
+
+
+Solidity Developer
+
+
+Rust Blockchain Engineer
+
+
+DeFi Engineer
+
+
+NFT Platform Engineer
+
+
+
+19. CMS & Digital Experience Job Titles
+CMS Developer
+
+
+WordPress Developer
+
+
+Drupal Developer
+
+
+AEM Developer
+
+
+Sitecore Developer
+
+
+Pimcore Developer
+
+
+Digital Experience Engineer
+
+
+Headless CMS Developer
+
+
+
+20. E-Commerce Job Titles
+E-Commerce Developer
+
+
+Shopify Developer
+
+
+Magento Developer
+
+
+WooCommerce Developer
+
+
+Headless Commerce Developer
+
+
+E-Commerce Solution Architect
+
+
+Payment Integration Engineer
+
+
+
+21. UX / UI & Design Roles
+UX Designer
+
+
+UI Designer
+
+
+Product Designer
+
+
+Senior UX/UI Designer
+
+
+Design System Engineer
+
+
+UX Researcher
+
+
+Interaction Designer
+
+
+
+22. Project, Product & Business Roles
+Project Manager
+
+
+Technical Project Manager
+
+
+Product Manager
+
+
+Senior Product Manager
+
+
+Business Analyst
+
+
+Technical Business Analyst
+
+
+Scrum Master
+
+
+Agile Coach
+
+
+Technical Writer
+
+
+Content Strategist
+
+
+
+23. Support & Operations Roles
+Application Support Engineer
+
+
+L2 Support Engineer
+
+
+L3 Support Engineer
+
+
+Production Support Engineer
+
+
+Incident Manager
+
+
+IT Operations Engineer
+
+
+On-Call Support Engineer
+
+
+
+
