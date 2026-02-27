@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import ScraperGrid from '../components/ScraperGrid';
 
-const API_URL = 'http://localhost:5002';
+const API_URL = import.meta.env.VITE_API_URL || '';
 
 export default function HomePage() {
     const [scrapers, setScrapers] = useState([]);
