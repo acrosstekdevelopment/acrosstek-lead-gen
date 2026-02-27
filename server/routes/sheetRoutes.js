@@ -29,7 +29,7 @@ router.get('/auth/callback', async (req, res) => {
           <div style="text-align: center; padding: 40px; background: white; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
             <h1 style="color: #059669; margin-bottom: 12px;">✅ Google Sheets Authorized!</h1>
             <p style="color: #6B7280;">You can now close this tab and run scrapers.<br>Sheets will be created and synced automatically.</p>
-            <a href="http://localhost:5173/" style="display: inline-block; margin-top: 20px; padding: 10px 24px; background: #2563EB; color: white; text-decoration: none; border-radius: 8px; font-weight: 600;">Back to Dashboard</a>
+            <a href="https://scale.acrosstek.in/" style="display: inline-block; margin-top: 20px; padding: 10px 24px; background: #2563EB; color: white; text-decoration: none; border-radius: 8px; font-weight: 600;">Back to Dashboard</a>
           </div>
         </body>
       </html>

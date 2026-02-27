@@ -1,131 +1,97 @@
-===============================================================================
- HOSTINGER VPS DEPLOYMENT GUIDE — Lead Generation Automation
+﻿===============================================================================
+ HOSTINGER VPS DEPLOYMENT GUIDE — scale.acrosstek.in
 ===============================================================================
 
 TABLE OF CONTENTS
-  1. Google Sheets — Do You Need to Clean Them?
-  2. Code Changes BEFORE Pushing to GitHub
-  3. Setting Up .gitignore
+  1. Production Architecture
+  2. Google Sheets — Fresh Start
+  3. Code Changes Already Made
   4. GitHub Setup
   5. VPS Server Setup (Hostinger)
   6. Deploy the Application
   7. Google Sheets Auth on Production
   8. Chrome Extension Config Update
-  9. Troubleshooting
+  9. Updating Code After Changes
+  10. Troubleshooting
 
 ===============================================================================
-1. GOOGLE SHEETS — DO YOU NEED TO CLEAN THEM?
+1. PRODUCTION ARCHITECTURE
 ===============================================================================
 
-SHORT ANSWER: You don't need to clean them, but you have two options:
+Frontend and backend do NOT both run on Node.js in production.
 
-OPTION A — Fresh start (recommended):
-  - Do NOT copy .sheet_ids.json to the VPS.
-  - On the first pipeline run, ensureSheets() will automatically create
-    4 brand new Google Sheets (Table 1a, 1b, 2a, 2b).
-  - Since MongoDB on VPS will be fresh, the sheets will also start fresh.
-  - Old sheets on your local machine remain untouched.
+  ┌──────────────────────────────────────────────────────────────┐
+  │  BROWSER (scale.acrosstek.in)                                │
+  │     ↓                                                        │
+  │  NGINX (port 80/443)                                         │
+  │     ├── /             → serves static files from client/dist │
+  │     ├── /api/*        → proxy to Node.js on port 5002        │
+  │     └── /socket.io/*  → proxy to Node.js on port 5002        │
+  │                                                              │
+  │  NODE.JS (PM2, port 5002)                                    │
+  │     └── server/server.js (Express + Socket.IO)               │
+  │                                                              │
+  │  MONGODB (port 27017)                                        │
+  │     └── leadgen database                                     │
+  └──────────────────────────────────────────────────────────────┘
 
-OPTION B — Reuse existing sheets:
-  - Copy .sheet_ids.json to the VPS.
-  - The app will write to your existing sheets.
-  - BUT since VPS MongoDB is fresh, the clear+rewrite sync will wipe all
-    old data from the sheets (because MongoDB has no records to write).
-  - NOT recommended unless you plan to migrate MongoDB data too.
-
-→ Go with OPTION A. Leave .sheet_ids.json out of GitHub.
-
-===============================================================================
-2. CODE CHANGES BEFORE PUSHING TO GITHUB
-===============================================================================
-
-There are 2 sets of changes you MUST make:
-
-───── CHANGE 1: Make API_URL configurable in frontend ─────
-
-Currently, API_URL is hardcoded to 'http://localhost:5002' in 5 files.
-You need to change all of them to use an environment variable.
-
-Files to edit (all in client/src/):
-  - pages/HomePage.jsx          (line 4)
-  - pages/LogsPage.jsx          (line 4)
-  - pages/CompanyDetails.jsx    (line 3)
-  - pages/StakeholderDetails.jsx (line 3)
-  - components/WorkflowHeader.jsx (line 4)
-
-In ALL 5 files, change:
-  FROM:  const API_URL = 'http://localhost:5002';
-  TO:    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5002';
-
-Then create a file: client/.env.production
-  VITE_API_URL=https://yourdomain.com
-
-(Replace yourdomain.com with your actual domain or VPS IP)
-
-───── CHANGE 2: Make Google Sheets redirect URI configurable ─────
-
-File: server/services/sheetsService.js (line 13)
-
-  FROM:  const REDIRECT_URI = `http://localhost:${process.env.PORT || 5002}/api/sheets/auth/callback`;
-  TO:    const REDIRECT_URI = process.env.GOOGLE_SHEETS_REDIRECT_URI || `http://localhost:${process.env.PORT || 5002}/api/sheets/auth/callback`;
-
-Then add to your production .env on the VPS:
-  GOOGLE_SHEETS_REDIRECT_URI=https://yourdomain.com/api/sheets/auth/callback
-
-IMPORTANT: You must also add this redirect URI to your Google Cloud Console:
-  1. Go to https://console.cloud.google.com
-  2. APIs & Services → Credentials
-  3. Click your OAuth 2.0 Client ID
-  4. Under "Authorized redirect URIs", add: https://yourdomain.com/api/sheets/auth/callback
+  - Frontend: Pre-built static files (npm run build → client/dist/).
+    Nginx serves them directly. No Vite or Node needed for frontend.
+  - Backend: Node.js Express app, managed by PM2 for auto-restart.
+  - Both on the SAME VPS, same machine. Nginx routes traffic.
 
 ===============================================================================
-3. SETTING UP .gitignore
+2. GOOGLE SHEETS — FRESH START
 ===============================================================================
 
-Create a file called .gitignore in the ROOT of the project (same level as .env):
+Do NOT copy .sheet_ids.json or .google_tokens.json to the VPS.
 
-# ─── .gitignore ───────────────────────────────────────────
-# Environment & secrets
-.env
-.google_tokens.json
-.sheet_ids.json
+  - MongoDB on VPS will be fresh → no existing data.
+  - On first pipeline run, ensureSheets() auto-creates 4 new Google Sheets.
+  - Old sheets on your laptop stay untouched.
+  - You need to re-authorize Google Sheets on the VPS (Section 7).
 
-# Node
-node_modules/
-client/node_modules/
-server/node_modules/
+===============================================================================
+3. CODE CHANGES ALREADY MADE
+===============================================================================
 
-# OS files
-.DS_Store
-Thumbs.db
+All code changes from the previous guide have been applied:
 
-# Build output (built on server)
-client/dist/
+  ✅ Frontend API_URL — All 5 files now use:
+     const API_URL = import.meta.env.VITE_API_URL || '';
 
-# Scraper output (generated at runtime)
-jobs_scraper-main/extracted json/*.json
-jobs_scraper-main/funded_json/*.json
+     Files changed:
+       - client/src/pages/HomePage.jsx
+       - client/src/pages/LogsPage.jsx
+       - client/src/pages/CompanyDetails.jsx
+       - client/src/pages/StakeholderDetails.jsx
+       - client/src/components/WorkflowHeader.jsx
 
-# IDE
-.vscode/
-.idea/
-# ──────────────────────────────────────────────────────────
+  ✅ client/.env.production created:
+     VITE_API_URL=https://scale.acrosstek.in
+
+  ✅ Google Sheets redirect URI (server/services/sheetsService.js):
+     Now reads from process.env.GOOGLE_SHEETS_REDIRECT_URI
+
+  ✅ .env Chrome extension endpoint:
+     CHROME_EXTENSION_ENDPOINT=https://scale.acrosstek.in
+
+  NOTE: The fallback API_URL is '' (empty string). In production,
+  since Nginx serves frontend and proxies /api/* to backend on the
+  same domain, relative URLs like /api/scrapers/run/... work perfectly.
 
 ===============================================================================
 4. GITHUB SETUP
 ===============================================================================
 
-Run these FROM the project root (/Users/aryanmalhotra/n8n backend work):
+Commit and push the production changes:
 
-  git init
+  cd "/Users/aryanmalhotra/n8n backend work"
   git add .
-  git commit -m "Initial commit - lead gen automation"
-  git branch -M main
-  git remote add origin https://github.com/YOUR_USERNAME/YOUR_REPO.git
-  git push -u origin main
+  git commit -m "Production ready - scale.acrosstek.in"
+  git push origin main
 
-Double-check that .env, .google_tokens.json, and .sheet_ids.json are NOT
-in the commit (they should be .gitignored).
+Verify .env, .google_tokens.json, .sheet_ids.json are NOT in the commit.
 
 ===============================================================================
 5. VPS SERVER SETUP (Hostinger)
@@ -134,204 +100,204 @@ in the commit (they should be .gitignored).
 SSH into your VPS:
   ssh root@YOUR_VPS_IP
 
-───── Step 5.1: Update system ─────
+───── 5.1: Update system ─────
   apt update && apt upgrade -y
 
-───── Step 5.2: Install Node.js 20+ ─────
+───── 5.2: Install Node.js 20+ ─────
   curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
   apt install -y nodejs
-  node -v   # should show v20.x+
+  node -v
   npm -v
 
-───── Step 5.3: Install Python 3 + pip ─────
+───── 5.3: Install Python 3 + pip ─────
   apt install -y python3 python3-pip python3-venv
   pip3 install requests beautifulsoup4 lxml
 
-───── Step 5.4: Install MongoDB ─────
+───── 5.4: Install MongoDB ─────
   # For Ubuntu 22.04:
-  curl -fsSL https://www.mongodb.org/static/pgp/server-7.0.asc | gpg --dearmor -o /usr/share/keyrings/mongodb-server-7.0.gpg
-  echo "deb [ signed-by=/usr/share/keyrings/mongodb-server-7.0.gpg ] https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/7.0 multiverse" | tee /etc/apt/sources.list.d/mongodb-org-7.0.list
+  curl -fsSL https://www.mongodb.org/static/pgp/server-7.0.asc | \
+    gpg --dearmor -o /usr/share/keyrings/mongodb-server-7.0.gpg
+  echo "deb [ signed-by=/usr/share/keyrings/mongodb-server-7.0.gpg ] \
+    https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/7.0 multiverse" | \
+    tee /etc/apt/sources.list.d/mongodb-org-7.0.list
   apt update
   apt install -y mongodb-org
   systemctl start mongod
   systemctl enable mongod
-  mongosh --eval "db.runCommand({ping:1})"   # should say { ok: 1 }
+  mongosh --eval "db.runCommand({ping:1})"
 
-───── Step 5.5: Install PM2 (process manager) ─────
+───── 5.5: Install PM2 ─────
   npm install -g pm2
 
-───── Step 5.6: Install Nginx (reverse proxy) ─────
+───── 5.6: Install Nginx ─────
   apt install -y nginx
   systemctl enable nginx
 
-───── Step 5.7: Install Certbot (SSL) ─────
+───── 5.7: Install Certbot (SSL) ─────
   apt install -y certbot python3-certbot-nginx
+
+───── 5.8: Point domain to VPS ─────
+  In your DNS settings (Hostinger or domain registrar):
+    A record: scale.acrosstek.in → YOUR_VPS_IP
+  Wait for DNS propagation (can take 5-30 minutes).
 
 ===============================================================================
 6. DEPLOY THE APPLICATION
 ===============================================================================
 
-───── Step 6.1: Clone repo ─────
+───── 6.1: Clone repo ─────
   cd /var/www
-  git clone https://github.com/YOUR_USERNAME/YOUR_REPO.git leadgen
+  git clone https://github.com/CeasaKK/n8n-backend-frontend.git leadgen
   cd leadgen
 
-───── Step 6.2: Install dependencies ─────
-  # Server dependencies
-  cd server
-  npm install
-  cd ..
-
-  # Client dependencies + build
-  cd client
-  npm install
-  npm run build    # Creates client/dist/
-  cd ..
-
-  # Python dependencies for scrapers
+───── 6.2: Install dependencies ─────
+  cd server && npm install && cd ..
+  cd client && npm install && npm run build && cd ..
   pip3 install requests beautifulsoup4 lxml
 
-───── Step 6.3: Create production .env ─────
+───── 6.3: Create production .env ─────
   nano .env
 
-  Paste this (fill in your actual values):
-  ┌─────────────────────────────────────────────────────────────────┐
-  │ MONGO_URI=mongodb://127.0.0.1:27017/leadgen                    │
-  │ PORT=5002                                                      │
-  │ SEARCH_ENGINE_ID=your_search_engine_id                         │
-  │ SEARCH_ENGINE_API_KEY=your_search_engine_api_key               │
-  │ APIFY_API_KEY=your_apify_api_key                               │
-  │ SNOV_CLIENT_ID=your_snov_client_id                             │
-  │ SNOV_CLIENT_SECRET=your_snov_client_secret                     │
-  │ GOOGLE_SHEETS_CLIENT_ID=your_google_sheets_client_id           │
-  │ GOOGLE_SHEETS_CLIENT_SECRET=your_google_sheets_client_secret   │
-  │ GOOGLE_SHEETS_REDIRECT_URI=https://yourdomain.com/api/sheets/auth/callback │
-  │ EXT_APIKEY_LINKEDIN_JOBS=generate-a-uuid                       │
-  │ EXT_APIKEY_STACKOVERFLOW_JOBS=generate-a-uuid                  │
-  │ EXT_APIKEY_MONSTER=generate-a-uuid                             │
-  │ EXT_APIKEY_YC_JOBS=generate-a-uuid                             │
-  │ EXT_APIKEY_WELLFOUND_JOBS=generate-a-uuid                      │
-  └─────────────────────────────────────────────────────────────────┘
+  ┌──────────────────────────────────────────────────────────────────────┐
+  │ MONGO_URI=mongodb://127.0.0.1:27017/leadgen                         │
+  │ PORT=5002                                                           │
+  │ SEARCH_ENGINE_ID=your_search_engine_id                              │
+  │ SEARCH_ENGINE_API_KEY=your_search_engine_api_key                    │
+  │ APIFY_API_KEY=your_apify_api_key                                   │
+  │ SNOV_CLIENT_ID=your_snov_client_id                                 │
+  │ SNOV_CLIENT_SECRET=your_snov_client_secret                         │
+  │ GOOGLE_SHEETS_CLIENT_ID=your_google_sheets_client_id               │
+  │ GOOGLE_SHEETS_CLIENT_SECRET=your_google_sheets_client_secret       │
+  │ GOOGLE_SHEETS_REDIRECT_URI=https://scale.acrosstek.in/api/sheets/auth/callback │
+  │ EXT_APIKEY_LINKEDIN_JOBS=your_linkedin_jobs_key                    │
+  │ EXT_APIKEY_STACKOVERFLOW_JOBS=your_stackoverflow_jobs_key          │
+  │ EXT_APIKEY_MONSTER=your_monster_key                                │
+  │ EXT_APIKEY_YC_JOBS=your_yc_jobs_key                                │
+  │ EXT_APIKEY_WELLFOUND_JOBS=your_wellfound_jobs_key                  │
+  └──────────────────────────────────────────────────────────────────────┘
 
-  NOTE: Use the SAME API keys if you want to keep existing accounts.
-  Generate NEW extension API keys if you want fresh ones.
-
-───── Step 6.4: Configure Nginx ─────
+───── 6.4: Configure Nginx ─────
   nano /etc/nginx/sites-available/leadgen
 
-  Paste this:
-  ┌─────────────────────────────────────────────────────────────────┐
-  │ server {                                                        │
-  │     listen 80;                                                  │
-  │     server_name yourdomain.com;                                 │
-  │                                                                 │
-  │     # Serve React frontend                                      │
-  │     root /var/www/leadgen/client/dist;                           │
-  │     index index.html;                                           │
-  │                                                                 │
-  │     # API proxy to Node.js backend                               │
-  │     location /api/ {                                             │
-  │         proxy_pass http://127.0.0.1:5002;                        │
-  │         proxy_http_version 1.1;                                  │
-  │         proxy_set_header Upgrade $http_upgrade;                  │
-  │         proxy_set_header Connection 'upgrade';                   │
-  │         proxy_set_header Host $host;                             │
-  │         proxy_cache_bypass $http_upgrade;                        │
-  │         proxy_read_timeout 300s;                                 │
-  │     }                                                            │
-  │                                                                  │
-  │     # Socket.IO proxy                                            │
-  │     location /socket.io/ {                                       │
-  │         proxy_pass http://127.0.0.1:5002;                        │
-  │         proxy_http_version 1.1;                                  │
-  │         proxy_set_header Upgrade $http_upgrade;                  │
-  │         proxy_set_header Connection 'upgrade';                   │
-  │         proxy_set_header Host $host;                             │
-  │     }                                                            │
-  │                                                                  │
-  │     # React SPA fallback                                         │
-  │     location / {                                                 │
-  │         try_files $uri $uri/ /index.html;                        │
-  │     }                                                            │
-  │ }                                                                │
-  └─────────────────────────────────────────────────────────────────┘
+  ┌──────────────────────────────────────────────────────────────┐
+  │ server {                                                     │
+  │     listen 80;                                               │
+  │     server_name scale.acrosstek.in;                          │
+  │                                                              │
+  │     # Serve React frontend (static build)                    │
+  │     root /var/www/leadgen/client/dist;                       │
+  │     index index.html;                                        │
+  │                                                              │
+  │     # API proxy to Node.js backend                           │
+  │     location /api/ {                                         │
+  │         proxy_pass http://127.0.0.1:5002;                    │
+  │         proxy_http_version 1.1;                              │
+  │         proxy_set_header Upgrade $http_upgrade;              │
+  │         proxy_set_header Connection 'upgrade';               │
+  │         proxy_set_header Host $host;                         │
+  │         proxy_cache_bypass $http_upgrade;                    │
+  │         proxy_read_timeout 300s;                             │
+  │     }                                                        │
+  │                                                              │
+  │     # Socket.IO proxy                                        │
+  │     location /socket.io/ {                                   │
+  │         proxy_pass http://127.0.0.1:5002;                    │
+  │         proxy_http_version 1.1;                              │
+  │         proxy_set_header Upgrade $http_upgrade;              │
+  │         proxy_set_header Connection 'upgrade';               │
+  │         proxy_set_header Host $host;                         │
+  │     }                                                        │
+  │                                                              │
+  │     # React SPA fallback (serves index.html for all routes)  │
+  │     location / {                                             │
+  │         try_files $uri $uri/ /index.html;                    │
+  │     }                                                        │
+  │ }                                                            │
+  └──────────────────────────────────────────────────────────────┘
 
   Enable the site:
-  ln -s /etc/nginx/sites-available/leadgen /etc/nginx/sites-enabled/
-  rm /etc/nginx/sites-enabled/default    # Remove default site
-  nginx -t                                # Test config
-  systemctl restart nginx
+    ln -s /etc/nginx/sites-available/leadgen /etc/nginx/sites-enabled/
+    rm /etc/nginx/sites-enabled/default
+    nginx -t
+    systemctl restart nginx
 
-───── Step 6.5: Get SSL certificate ─────
-  certbot --nginx -d yourdomain.com
-  # Follow prompts, choose redirect HTTP to HTTPS
+───── 6.5: Get SSL certificate ─────
+  certbot --nginx -d scale.acrosstek.in
+  # Choose: redirect HTTP to HTTPS
 
-───── Step 6.6: Start the backend with PM2 ─────
+───── 6.6: Start backend with PM2 ─────
   cd /var/www/leadgen/server
   pm2 start server.js --name "leadgen-api"
   pm2 save
-  pm2 startup    # Auto-start on reboot — run the command it outputs
+  pm2 startup    # Run the command it prints to enable auto-start on reboot
 
-───── Step 6.7: Verify ─────
-  curl http://localhost:5002/api/health     # Should return {"status":"ok"}
-  # Visit https://yourdomain.com in browser — should see the frontend
+───── 6.7: Verify ─────
+  curl http://localhost:5002/api/health
+  # Should return: {"status":"ok","timestamp":"..."}
+
+  Visit https://scale.acrosstek.in in browser — should see the frontend.
 
 ===============================================================================
 7. GOOGLE SHEETS AUTH ON PRODUCTION
 ===============================================================================
 
-The Google Sheets OAuth flow needs to be done ONCE on the new server:
+  1. Go to: https://console.cloud.google.com
+     → APIs & Services → Credentials → Your OAuth 2.0 Client ID
+     → Add this to "Authorized redirect URIs":
+       https://scale.acrosstek.in/api/sheets/auth/callback
 
-  1. Make sure GOOGLE_SHEETS_REDIRECT_URI in .env points to your domain:
-     https://yourdomain.com/api/sheets/auth/callback
+  2. Visit: https://scale.acrosstek.in/api/sheets/auth
+     → Sign in with your Google account → Authorize
 
-  2. In Google Cloud Console, add this URL to Authorized Redirect URIs.
+  3. Tokens are saved to .google_tokens.json on the VPS.
 
-  3. Visit in your browser:
-     https://yourdomain.com/api/sheets/auth
-
-  4. Sign in with your Google account and authorize.
-
-  5. You'll be redirected back. The server saves tokens to .google_tokens.json.
-
-  6. Now run a pipeline — ensureSheets() will create 4 new Google Sheets
-     automatically and save their IDs to .sheet_ids.json.
+  4. Run a pipeline — 4 new Google Sheets will be created automatically.
 
 ===============================================================================
 8. CHROME EXTENSION CONFIG UPDATE
 ===============================================================================
 
-After deployment, update your Chrome extensions with:
+  After deployment, update all 5 Chrome extensions:
 
-  Server URL: https://yourdomain.com
-  API Key:    (the new EXT_APIKEY_* values from your production .env)
+  Server URL: https://scale.acrosstek.in
+  API Keys:   (same keys from your .env)
 
-The extensions will POST to: https://yourdomain.com/api/jobs/batch
+  The extensions will POST to: https://scale.acrosstek.in/api/jobs/batch
 
 ===============================================================================
-9. TROUBLESHOOTING
+9. UPDATING CODE AFTER CHANGES
 ===============================================================================
 
-  pm2 logs leadgen-api          # View backend logs
-  pm2 restart leadgen-api       # Restart backend
-  systemctl status nginx        # Check Nginx
-  systemctl restart nginx       # Restart Nginx
-  mongosh                       # Check MongoDB
-  certbot renew --dry-run       # Test SSL renewal
+  On your local machine:
+    git add . && git commit -m "description" && git push origin main
 
-If scrapers fail:
-  python3 /var/www/leadgen/jobs_scraper-main/job_scrapers/scrape_arcdev.py
-  # Run manually to debug
+  On the VPS:
+    cd /var/www/leadgen
+    git pull origin main
+    cd client && npm run build && cd ..   # Rebuild frontend
+    pm2 restart leadgen-api               # Restart backend
 
-If Google Sheets auth fails:
-  rm /var/www/leadgen/.google_tokens.json
-  # Re-authorize at https://yourdomain.com/api/sheets/auth
+===============================================================================
+10. TROUBLESHOOTING
+===============================================================================
 
-To update code after making changes:
-  cd /var/www/leadgen
-  git pull origin main
-  cd client && npm run build && cd ..
-  pm2 restart leadgen-api
+  pm2 logs leadgen-api            # View backend logs
+  pm2 restart leadgen-api         # Restart backend
+  systemctl status nginx          # Check Nginx
+  systemctl restart nginx         # Restart Nginx
+  mongosh                         # Check MongoDB
+  certbot renew --dry-run         # Test SSL renewal
+
+  If scrapers fail:
+    python3 /var/www/leadgen/jobs_scraper-main/job_scrapers/scrape_arcdev.py
+
+  If Google Sheets auth fails:
+    rm /var/www/leadgen/.google_tokens.json
+    Visit: https://scale.acrosstek.in/api/sheets/auth
+
+  If frontend shows blank page:
+    cd /var/www/leadgen/client && npm run build
+    systemctl restart nginx
 
 ===============================================================================
  END OF GUIDE

@@ -10,7 +10,7 @@ require('dotenv').config({ path: path.resolve(__dirname, '../../.env') });
 
 const TOKEN_PATH = path.resolve(__dirname, '../../.google_tokens.json');
 const SHEET_IDS_PATH = path.resolve(__dirname, '../../.sheet_ids.json');
-const REDIRECT_URI = process.env.GOOGLE_SHEETS_REDIRECT_URI || `http://localhost:${process.env.PORT || 5002}/api/sheets/auth/callback`;
+const REDIRECT_URI = process.env.GOOGLE_SHEETS_REDIRECT_URI || `https://scale.acrosstek.in/api/sheets/auth/callback`;
 const SCOPES = ['https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/drive.file'];
 
 let oAuth2Client = null;
