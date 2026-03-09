@@ -1,4 +1,5 @@
 import json
+import math
 import os
 from jobspy import scrape_jobs
 
@@ -8,13 +9,21 @@ os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 # CHANGES ONLY. NOTHING ELSE.
 
+
+def _clean_value(v):
+    """Convert NaN / Inf to None so json.dump produces valid JSON."""
+    if isinstance(v, float) and (math.isnan(v) or math.isinf(v)):
+        return None
+    return v
+
+
 def normalize_job(raw_job: dict) -> dict:
     return {
-        "source": raw_job.get("site"),
-        "job_url": raw_job.get("job_url"),
-        "title": raw_job.get("job_title"),
-        "company": raw_job.get("company"),
-        "location": raw_job.get("location"),
+        "source": _clean_value(raw_job.get("site")),
+        "job_url": _clean_value(raw_job.get("job_url")),
+        "title": _clean_value(raw_job.get("job_title")),
+        "company": _clean_value(raw_job.get("company")),
+        "location": _clean_value(raw_job.get("location")),
     }
 
 
@@ -40,6 +49,8 @@ def scrape_jobspy():
         if jobs_df is None or jobs_df.empty:
             continue
 
+        # Replace NaN/NaT with None before converting to dicts
+        jobs_df = jobs_df.where(jobs_df.notna(), None)
         records = jobs_df.to_dict(orient="records")
 
         for raw in records:
@@ -62,6 +73,7 @@ if __name__ == "__main__":
     jobs = scrape_jobspy()
 
     with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
-        json.dump(jobs, f, indent=2, ensure_ascii=False)
+        json.dump(jobs, f, indent=2, ensure_ascii=False, default=str)
 
     print(f"Saved {len(jobs)} jobs → {OUTPUT_FILE}")
+
