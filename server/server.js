@@ -29,6 +29,8 @@ app.use('/api', require('./routes/extensionRoutes')); // /api/jobs/batch for Chr
 app.use('/api/workflow', require('./routes/workflowRoutes'));
 app.use('/api/logs', require('./routes/logRoutes'));
 app.use('/api/sheets', require('./routes/sheetRoutes'));
+app.use('/api/auth', require('./routes/authRoutes'));
+app.use('/api/superadmin', require('./routes/superadminRoutes'));
 
 
 // Health check

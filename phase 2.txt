@@ -1,0 +1,13 @@
+authentication logic-
+
+there will be 2 pages related to authentication-
+1. login page-
+    works as a bandaid over the entire project, has nothing to do with the rest of the project, just a login page with username and password fields and a login button. if the credentials are correct, the user is redirected to the dashboard. if the credentials are incorrect, the user is shown an error message.
+    no sign up page available for this. only the login page will be available
+
+2. scale.acrosstek.in/superadmin page-
+    this page will be the admin page where the admin can create login username and passwords for users to use when they login to the dashboard. 
+    this page can be accessed using the id and password stores in the env file of the project.(create new entries for username and password in the env file)
+
+
+NOTE- neither of these pages are in any way related to any files or working of the rest of the project. they just act as the cover for the project.
